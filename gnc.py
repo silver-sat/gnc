@@ -2,7 +2,7 @@
 import threading, time, sys
 
 import gps
-import Adafruit_LSM303
+# import Adafruit_LSM303
 
 class GNC(object):
     def __init__(self):
@@ -22,7 +22,7 @@ class GNC(object):
     def get(self,*args):
         try:
             self.lock.acquire()
-            return map(self.data.get,args)
+            return tuple(map(self.data.get,args))
         finally:
             self.lock.release()
 
