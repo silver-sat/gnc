@@ -3,6 +3,8 @@ import threading, time, sys
 
 import gps
 import Adafruit_LSM303
+import RPi.GPIO as io 
+
 
 class GNC(object):
     def __init__(self):
@@ -10,15 +12,19 @@ class GNC(object):
         self.data = {}
 
         self.gpssleep = 1 # sample GPS every 1 second
-        self.lsm303sleep = 1 # sample chip every 1 second
 
-        self.t = threading.Thread(target=self.poll_gps)
-        self.t.daemon = True
-        self.t.start()
+        t = threading.Thread(target=self.poll_gps)
+        t.daemon = True
+        t.start()
+
+        self.lsm303sleep = 1 # sample chip every 1 second
 
         t = threading.Thread(target=self.poll_lsm303)
         t.daemon = True
         t.start()
+
+        io.setmode(io.BCM) 
+        io.setwarnings(False)
 
     def get(self,*args):
         try:
@@ -78,6 +84,16 @@ class GNC(object):
             self.set(**kw)
             time.sleep(self.gpssleep)
 
+    def pin_on(self,pin):
+        assert pin in (4,17,18,22,23,24,25)
+        io.setup(pin, io.OUT)
+        io.output(pin, True)
+
+    def pin_off(self,pin):
+        assert pin in (4,17,18,22,23,24,25)
+        io.setup(pin, io.OUT)
+        io.output(pin, False)
+
 if __name__ == "__main__":
 
     gnc = GNC()
@@ -91,3 +107,25 @@ if __name__ == "__main__":
         print ("Acceleration: {0}".format(gnc.acceleration()))
         time.sleep(5)
 
+
+if len(sys.argv) < 2:
+    print >>sys.stderr, "power.py <pin> [ <pin> ... ]"
+    sys.exit(1)
+ 
+
+for pin in sys.argv[1:]:
+    try:
+        pin = int(pin)
+    except ValueError:
+	continue
+    if abs(pin) not in (4,17,18,22,23,24,25):
+	continue
+    if pin > 0:
+        io.setup(pin, io.OUT)
+        io.output(pin, True)
+    else:
+        io.setup(-pin, io.OUT)
+        io.output(-pin, False)
+
+# time.sleep(5)
+# io.cleanup()
