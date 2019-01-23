@@ -79,13 +79,18 @@ class LSM303(object):
         """
         # Read the accelerometer as signed 16-bit little endian values.
         accel_raw = self._accel.readList(LSM303_REGISTER_ACCEL_OUT_X_L_A | 0x80, 6)
-        # print repr(accel_raw)
-        accel = struct.unpack('<hhh', accel_raw)
+        try:
+            accel = struct.unpack('<hhh', accel_raw)
+	except:
+            accel = struct.unpack('<hhh', buffer(accel_raw))
         # Convert to 12-bit values by shifting unused bits.
         accel = (accel[0] >> 4, accel[1] >> 4, accel[2] >> 4)
         # Read the magnetometer.
         mag_raw = self._mag.readList(LSM303_REGISTER_MAG_OUT_X_H_M, 6)
-        mag = struct.unpack('>hhh', mag_raw)
+	try:
+            mag = struct.unpack('>hhh', mag_raw)
+        except:
+            mag = struct.unpack('>hhh', buffer(mag_raw))
         return (accel, mag)
 
     def set_mag_gain(gain=LSM303_MAGGAIN_1_3):

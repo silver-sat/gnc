@@ -1,5 +1,5 @@
 
-import threading, time, sys
+import threading, time, sys, math
 
 import gps
 import Adafruit_LSM303
@@ -26,6 +26,11 @@ class GNC(object):
         io.setmode(io.BCM) 
         io.setwarnings(False)
 
+    def lsm303_sampling(self,value=None):
+        if value == None:
+            return self.lsm303sleep
+        self.lsm303sleep = value
+
     def get(self,*args):
         try:
             self.lock.acquire()
@@ -51,6 +56,9 @@ class GNC(object):
     def orientation(self):
         return self.get('magx','magy','magz')
 
+    def heading(self):
+        return self.get('heading')[0]
+
     def acceleration(self):
         return self.get('accelx','accely','accelz')
 
@@ -63,7 +71,10 @@ class GNC(object):
             accel, mag = lsm303.read()
             accel_x, accel_y, accel_z = accel
             mag_x, mag_z, mag_y = mag 
+            heading2d = math.atan2(mag_y,mag_x)*180.0/math.pi
+	    
             kw = dict(magx=mag_x,magy=mag_y,magz=mag_z,
+		      heading=heading2d,
                       accelx=accel_x,accely=accel_y,
                       accelz=accel_z)
             self.set(**kw)
