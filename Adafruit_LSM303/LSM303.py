@@ -57,9 +57,9 @@ class LSM303(object):
             import Adafruit_GPIO.I2C as I2C
             i2c = I2C
         self._accel = i2c.get_i2c_device(accel_address, **kwargs)
-	# print self._accel
+        # print self._accel
         self._mag = i2c.get_i2c_device(mag_address, **kwargs)
-	# print self._mag
+        # print self._mag
         # Enable the accelerometer
         self._accel.write8(LSM303_REGISTER_ACCEL_CTRL_REG1_A, 0x27)
         # Select hi-res (12-bit) or low-res (10-bit) output mode.
@@ -81,13 +81,13 @@ class LSM303(object):
         accel_raw = self._accel.readList(LSM303_REGISTER_ACCEL_OUT_X_L_A | 0x80, 6)
         try:
             accel = struct.unpack('<hhh', accel_raw)
-	except:
+        except:
             accel = struct.unpack('<hhh', buffer(accel_raw))
         # Convert to 12-bit values by shifting unused bits.
         accel = (accel[0] >> 4, accel[1] >> 4, accel[2] >> 4)
         # Read the magnetometer.
         mag_raw = self._mag.readList(LSM303_REGISTER_MAG_OUT_X_H_M, 6)
-	try:
+        try:
             mag = struct.unpack('>hhh', mag_raw)
         except:
             mag = struct.unpack('>hhh', buffer(mag_raw))

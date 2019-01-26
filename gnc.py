@@ -13,6 +13,8 @@ class GNC(object):
 
         self.gpssleep = 1 # sample GPS every 1 second
 
+        self.start = time.time()
+
         t = threading.Thread(target=self.poll_gps)
         t.daemon = True
         t.start()
@@ -51,32 +53,60 @@ class GNC(object):
         return True
 
     def position(self):
-        return self.get('lat','lon','alt')
+        return self.get('gpstime','lat','lon','alt')
 
     def orientation(self):
-        return self.get('magx','magy','magz')
+        return self.get('lsm303time','calmagx','calmagy','calmagz')
 
     def heading(self):
-        return self.get('heading')[0]
+        return self.get('lsm303time','heading')
 
     def acceleration(self):
-        return self.get('accelx','accely','accelz')
+        return self.get('lsm303time','accelx','accely','accelz')
+
+    def getlsm303(self):
+        return self.get('lsm303time','accelx','accely','accelz','rawmagx','rawmagy','rawmagz','calmagx','calmagy','calmagx','heading')
 
     def poll_lsm303(self):
 
         # set up LSM303
         lsm303 = Adafruit_LSM303.LSM303()
+        max_mag_x = max_mag_y = max_mag_z = -1e-20
+        min_mag_x = min_mag_y = min_mag_z = +1e-20
 
         while True:
             accel, mag = lsm303.read()
+            now = time.time()
             accel_x, accel_y, accel_z = accel
             mag_x, mag_z, mag_y = mag 
-            heading2d = math.atan2(mag_y,mag_x)*180.0/math.pi
-	    
-            kw = dict(magx=mag_x,magy=mag_y,magz=mag_z,
-		      heading=heading2d,
+
+            max_mag_x = max(max_mag_x,mag_x)
+            min_mag_x = min(min_mag_x,mag_x)
+            max_mag_y = max(max_mag_y,mag_y)
+            min_mag_y = min(min_mag_y,mag_y)
+            max_mag_z = max(max_mag_z,mag_z)
+            min_mag_z = min(min_mag_z,mag_z)
+
+            off_mag_x = (max_mag_x + min_mag_x)/2
+            off_mag_y = (max_mag_y + min_mag_y)/2
+            off_mag_z = (max_mag_z + min_mag_z)/2
+
+            sca_mag_x = 1.0 if (max_mag_x == min_mag_x) else 2000.0/(max_mag_x-min_mag_x)
+            sca_mag_y = 1.0 if (max_mag_y == min_mag_y) else 2000.0/(max_mag_y-min_mag_y)
+            sca_mag_z = 1.0 if (max_mag_z == min_mag_z) else 2000.0/(max_mag_z-min_mag_z)
+
+            cal_mag_x = sca_mag_x * (mag_x - off_mag_x)
+            cal_mag_y = sca_mag_y * (mag_y - off_mag_y)
+            cal_mag_z = sca_mag_z * (mag_z - off_mag_z)
+
+            heading2d = math.atan2(cal_mag_y,cal_mag_x)*180.0/math.pi
+            
+            kw = dict(rawmagx=mag_x,rawmagy=mag_y,rawmagz=mag_z,
+                      calmagx=cal_mag_x,calmagy=cal_mag_y,calmagz=cal_mag_z,
+                      heading=heading2d,
                       accelx=accel_x,accely=accel_y,
-                      accelz=accel_z)
+                      accelz=accel_z,
+                      lsm303time=(now-self.start))
             self.set(**kw)
             time.sleep(self.lsm303sleep)
 
@@ -88,7 +118,8 @@ class GNC(object):
 
         while True:
             report = session.next()
-            kw = {}
+            now = time.time()
+            kw = {'gpstime': now}
             for key in ('lat','lon','alt'):
                 if hasattr(report,key) and getattr(report,key):
                     kw[key] = getattr(report,key)

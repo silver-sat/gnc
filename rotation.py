@@ -19,4 +19,4 @@ while True:
     disp = '%-12s'%('      '+'*'*int(round(abs(heading)/30.0,0)),)
     if heading < 0:
         disp = disp[::-1]
-    print ("%8.3f %+5.0f %+5.0f %+5.0f %+9.3f %+9.3f %+9.3f %+8.3f"%obs,disp)
+    print ("%8.3f %+5.0f %+5.0f %+5.0f %+9.3f %+9.3f %+9.3f %+8.3f"%obs + " " + disp)
