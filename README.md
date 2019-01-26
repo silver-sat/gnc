@@ -1,2 +1,2 @@
 # gnc
-Guidance and Control
+Guidance, Navigation, and Control
