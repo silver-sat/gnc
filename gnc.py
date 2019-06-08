@@ -1,13 +1,13 @@
-
+ 
 import threading, time, sys, math
 
 from gnc import gps
 from gnc import Adafruit_LSM303
+noio = False
 try:
-  import RPi.GPIO as io 
+    import RPi.GPIO as io 
 except ImportError:
-  pass
-
+    noio = True
 
 class GNC(object):
     def __init__(self):
@@ -28,8 +28,9 @@ class GNC(object):
         t.daemon = True
         t.start()
 
-        io.setmode(io.BCM) 
-        io.setwarnings(False)
+        if not noio:
+           io.setmode(io.BCM) 
+           io.setwarnings(False)
 
     def lsm303_sampling(self,value=None):
         if value == None:
