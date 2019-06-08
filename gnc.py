@@ -1,9 +1,12 @@
 
 import threading, time, sys, math
 
-import gps
-import Adafruit_LSM303
-import RPi.GPIO as io 
+from gnc import gps
+from gnc import Adafruit_LSM303
+try:
+  import RPi.GPIO as io 
+except ImportError:
+  pass
 
 
 class GNC(object):
