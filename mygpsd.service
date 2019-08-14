@@ -1,0 +1,10 @@
+[Unit]
+Description=MyGPSD
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/gpsd /dev/serial0 -F /var/run/gpsd.sock -N
+
+[Install]
+WantedBy=multi-user.target

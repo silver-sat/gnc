@@ -1,8 +1,9 @@
  
 import threading, time, sys, math
 
-from gnc import gps
-from gnc import Adafruit_LSM303
+import gps
+from Adafruit_LSM303 import LSM303
+
 noio = False
 try:
     import RPi.GPIO as io 
@@ -54,6 +55,8 @@ class GNC(object):
     def ready(self):
         if None in self.get('lat','lon','alt'):
             return False
+        if None in self.get('lsm303time','heading'):
+            return False
         return True
 
     def position(self):
@@ -74,7 +77,7 @@ class GNC(object):
     def poll_lsm303(self):
 
         # set up LSM303
-        lsm303 = Adafruit_LSM303.LSM303()
+        lsm303 = LSM303()
         max_mag_x = max_mag_y = max_mag_z = -1e-20
         min_mag_x = min_mag_y = min_mag_z = +1e-20
 
@@ -123,7 +126,7 @@ class GNC(object):
         while True:
             report = session.next()
             now = time.time()
-            kw = {'gpstime': now}
+            kw = {'gpstime': (now-self.start)}
             for key in ('lat','lon','alt'):
                 if hasattr(report,key) and getattr(report,key):
                     kw[key] = getattr(report,key)
@@ -144,7 +147,7 @@ if __name__ == "__main__":
 
     gnc = GNC()
     while not gnc.ready():
-        print("Waiting for GNC to be ready.")
+        print("Waiting for GPS to be ready.")
         time.sleep(5)
         
     while True:
