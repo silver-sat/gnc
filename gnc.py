@@ -1,5 +1,7 @@
  
-import threading, time, sys, math
+import threading, time, sys, math, os.path
+
+sys.path.append(os.path.dirname(__file__))
 
 import gps
 import Adafruit_LSM303
