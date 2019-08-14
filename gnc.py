@@ -2,7 +2,7 @@
 import threading, time, sys, math
 
 import gps
-from Adafruit_LSM303 import LSM303
+import Adafruit_LSM303
 
 noio = False
 try:
@@ -77,7 +77,7 @@ class GNC(object):
     def poll_lsm303(self):
 
         # set up LSM303
-        lsm303 = LSM303()
+        lsm303 = Adafruit_LSM303.LSM303()
         max_mag_x = max_mag_y = max_mag_z = -1e-20
         min_mag_x = min_mag_y = min_mag_z = +1e-20
 
