@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(__file__))
 import gps
 import Adafruit_LSM303
 
+
 noio = False
 try:
     import RPi.GPIO as io 
